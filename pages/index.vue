@@ -81,7 +81,7 @@ const times = computed(() => {
 <template>
   <div class="flex flex-col w-screen h-dvh justify-center items-center" v-if="relevant && whatsHappening && times">
     <h1 class="font-bold text-6xl">
-      {{ time }} <span class="text-2xl">{{ amPm }}</span>
+      {{ time }}<span class="text-2xl w-0 inline">{{ amPm }}</span>
     </h1>
     <h2 class="text-lg mb-12">{{ date }}</h2>
     <h2 class="text-2xl">
