@@ -24,11 +24,7 @@ type Tide = {
 
 onBeforeMount(async () => {
   const now = dayjs();
-  if (
-    !cacheV1.value.predictions ||
-    !cacheV1.value.created ||
-    now.unix > cacheV1.value.created + 60 * 60 * 1000
-  ) {
+  if (!cacheV1.value.predictions || !cacheV1.value.created || now.unix > cacheV1.value.created + 60 * 60 * 1000) {
     cacheV1.value = {
       created: now.unix,
       predictions: await getHiLoPredictions(
@@ -73,8 +69,7 @@ const times = computed(() => {
   const now = dayjs();
   const between = next.time.diff(prev.time);
   const sincePrev = now.diff(prev.time);
-  const percent =
-    Math.round((sincePrev / between) * 10000.0 + Number.EPSILON) / 100;
+  const percent = Math.round((sincePrev / between) * 10000.0 + Number.EPSILON) / 100;
   return {
     start: now.to(prev.time),
     end: now.to(next.time),
@@ -85,10 +80,7 @@ const times = computed(() => {
 </script>
 
 <template>
-  <div
-    class="flex flex-col w-screen h-screen justify-center items-center"
-    v-if="relevant && whatsHappening && times"
-  >
+  <div class="flex flex-col w-screen h-dvh justify-center items-center" v-if="relevant && whatsHappening && times">
     <h1 class="font-bold text-6xl">
       {{ time }} <span class="text-2xl">{{ amPm }}</span>
     </h1>
