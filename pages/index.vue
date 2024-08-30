@@ -23,14 +23,14 @@ type Tide = {
 };
 
 onBeforeMount(async () => {
+  const now = dayjs();
   if (
     !cacheV1.value.predictions ||
     !cacheV1.value.created ||
-    Date.now() > cacheV1.value.created + 60 * 60 * 1000
+    now.unix > cacheV1.value.created + 60 * 60 * 1000
   ) {
-    const now = dayjs();
     cacheV1.value = {
-      created: Date.now(),
+      created: now.unix,
       predictions: await getHiLoPredictions(
         now.subtract(2, "days").format("YYYYMMDD"),
         now.add(30, "days").format("YYYYMMDD"),
@@ -49,8 +49,8 @@ const relevant: ComputedRef<{ prev?: Tide; next?: Tide }> = computed(() => {
       const prev = p[idx - 1];
       const next = p[idx];
       return {
-        prev: { time: dayjs(prev["t"] + " UTC"), type: prev["type"] },
-        next: { time: dayjs(next["t"] + " UTC"), type: next["type"] },
+        prev: { time: dayjs.utc(prev["t"]), type: prev["type"] },
+        next: { time: dayjs.utc(next["t"]), type: next["type"] },
       };
     }
   }
