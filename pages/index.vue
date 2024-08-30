@@ -4,8 +4,11 @@ import { cacheV1 } from "@/service/storage";
 import { useDateFormat, useNow } from "@vueuse/core";
 import dayjs, { Dayjs } from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import utc from "dayjs/plugin/utc";
+import { onBeforeMount } from "vue";
 
 dayjs.extend(relativeTime);
+dayjs.extend(utc);
 
 const now = useNow({ interval: 1000 });
 const date = useDateFormat(now, "MMMM D, YYYY");
@@ -42,7 +45,7 @@ const relevant: ComputedRef<{ prev?: Tide; next?: Tide }> = computed(() => {
   }
   const p = cacheV1.value.predictions.predictions;
   for (const idx in p) {
-    if (Date.parse(p[idx]["t"] + " UTC") > now.value) {
+    if (dayjs.utc(p[idx]["t"]) > dayjs()) {
       const prev = p[idx - 1];
       const next = p[idx];
       return {
