@@ -1,12 +1,15 @@
 <script setup lang="ts">
 const props = defineProps<{ percent: number }>();
+const clampedPercent = computed(() => props.percent * 0.9 + 10);
 </script>
 
 <template>
-  <div class="w-screen h-screen absolute flex flex-col -z-10 opacity-50">
+  <div
+    class="w-screen h-screen absolute top-0 left-0 flex flex-col -z-10 opacity-50"
+  >
     <div
       class="flex flex-col min-h-0"
-      :style="{ flexBasis: props.percent + '%' }"
+      :style="{ flexBasis: clampedPercent + '%' }"
     >
       <div class="basis-1/2 bg-[#8ed1fc]" />
       <svg
@@ -52,7 +55,7 @@ const props = defineProps<{ percent: number }>();
     </div>
     <div
       class="bg-amber-200"
-      :style="{ flexBasis: 100 - props.percent + '%' }"
+      :style="{ flexBasis: 100 - clampedPercent + '%' }"
     />
   </div>
 </template>

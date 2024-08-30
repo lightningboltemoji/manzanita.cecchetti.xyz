@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { getHiLoPredictions } from "@/service/noaa";
+import { cacheV1 } from "@/service/storage";
 import { useDateFormat, useNow } from "@vueuse/core";
 import dayjs, { Dayjs } from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -10,7 +12,6 @@ const date = useDateFormat(now, "MMMM D, YYYY");
 const time = useDateFormat(now, "h:mm");
 const amPm = useDateFormat(now, "A");
 
-import predictions from "@/public/mock.json";
 import { computed } from "vue";
 
 type Tide = {
@@ -18,8 +19,28 @@ type Tide = {
   type: "H" | "L";
 };
 
-const relevant: ComputedRef<{ prev: Tide; next: Tide }> = computed(() => {
-  const p = predictions["predictions"];
+onBeforeMount(async () => {
+  if (
+    !cacheV1.value.predictions ||
+    !cacheV1.value.created ||
+    Date.now() > cacheV1.value.created + 60 * 60 * 1000
+  ) {
+    const now = dayjs();
+    cacheV1.value = {
+      created: Date.now(),
+      predictions: await getHiLoPredictions(
+        now.subtract(2, "days").format("YYYYMMDD"),
+        now.add(30, "days").format("YYYYMMDD"),
+      ),
+    };
+  }
+});
+
+const relevant: ComputedRef<{ prev?: Tide; next?: Tide }> = computed(() => {
+  if (!cacheV1.value.predictions) {
+    return {};
+  }
+  const p = cacheV1.value.predictions.predictions;
   for (const idx in p) {
     if (Date.parse(p[idx]["t"] + " UTC") > now.value) {
       const prev = p[idx - 1];
@@ -35,15 +56,17 @@ const relevant: ComputedRef<{ prev: Tide; next: Tide }> = computed(() => {
 
 const whatsHappening = computed(() => {
   const { prev, next } = relevant.value;
-  if (prev["type"] === "L" && next["type"] === "H") {
-    return "coming in";
-  } else if (prev["type"] === "H" && next["type"] === "L") {
-    return "going out";
+  if (!prev || !next) {
+    return "";
   }
+  return next["type"] === "H" ? "coming in" : "going out";
 });
 
 const times = computed(() => {
   const { prev, next } = relevant.value;
+  if (!prev || !next) {
+    return {};
+  }
   const now = dayjs();
   const between = next.time.diff(prev.time);
   const sincePrev = now.diff(prev.time);
@@ -59,7 +82,10 @@ const times = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col w-screen h-screen justify-center items-center">
+  <div
+    class="flex flex-col w-screen h-screen justify-center items-center"
+    v-if="relevant && whatsHappening && times"
+  >
     <h1 class="font-bold text-6xl">
       {{ time }} <span class="text-2xl">{{ amPm }}</span>
     </h1>
