@@ -6,7 +6,8 @@ import relativeTime from "dayjs/plugin/relativeTime";
 dayjs.extend(relativeTime);
 
 const now = useNow({ interval: 1000 });
-const time = useDateFormat(now, "h:mm:ss");
+const date = useDateFormat(now, "MMMM D, YYYY");
+const time = useDateFormat(now, "h:mm");
 const amPm = useDateFormat(now, "A");
 
 import predictions from "@/public/mock.json";
@@ -59,9 +60,10 @@ const times = computed(() => {
 
 <template>
   <div class="flex flex-col w-screen h-screen justify-center items-center">
-    <h1 class="font-bold text-6xl mb-12">
+    <h1 class="font-bold text-6xl">
       {{ time }} <span class="text-2xl">{{ amPm }}</span>
     </h1>
+    <h2 class="text-lg mb-12">{{ date }}</h2>
     <h2 class="text-2xl">
       Tide is <span class="font-bold">{{ whatsHappening }}</span>
     </h2>
