@@ -57,8 +57,7 @@ const whatsHappening = computed(() => {
   if (!relevant.value) {
     return "";
   }
-  const { prev, next } = relevant.value;
-  return next["type"] === "H" ? "coming in" : "going out";
+  return relevant.value.next["type"] === "H" ? "coming in" : "going out";
 });
 
 const times = computed(() => {
