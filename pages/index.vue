@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { getHiLoPredictions } from "@/service/noaa";
 import { cacheV1 } from "@/service/storage";
 import { useDateFormat, useNow } from "@vueuse/core";
 import dayjs, { Dayjs } from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import utc from "dayjs/plugin/utc";
-import { onBeforeMount } from "vue";
+import { computed, onBeforeMount } from "vue";
+import { getHiLoPredictions } from "~/service/noaa";
 
 dayjs.extend(relativeTime);
 dayjs.extend(utc);
@@ -15,25 +15,38 @@ const date = useDateFormat(now, "MMMM D, YYYY");
 const time = useDateFormat(now, "h:mm");
 const amPm = useDateFormat(now, "A");
 
-import { computed } from "vue";
-
 type Tide = {
   time: Dayjs;
   type: "H" | "L";
 };
 
+const fetchFailed = ref(false);
 onBeforeMount(async () => {
   const now = dayjs();
-  if (!cacheV1.value.predictions || !cacheV1.value.created || now.unix() > cacheV1.value.created + 60 * 60 * 1000) {
-    cacheV1.value = {
-      created: now.unix(),
-      predictions: await getHiLoPredictions(
+  if (!cacheV1.value.predictions || !cacheV1.value.created || now.unix() > cacheV1.value.created + 60 * 60) {
+    try {
+      const predictions = await getHiLoPredictions(
         now.subtract(2, "days").format("YYYYMMDD"),
         now.add(30, "days").format("YYYYMMDD"),
-      ),
-    };
+      );
+      cacheV1.value = { created: now.unix(), predictions };
+    } catch (e: any) {
+      console.error("Failed to load predictions from NOAA", e.stack);
+      fetchFailed.value = true;
+    }
   }
 });
+
+// onMounted(() => {
+//   if (cacheV1.value.predictions) {
+//     const p = cacheV1.value.predictions;
+//     cacheV1.value.predictions = undefined;
+//     setTimeout(() => {
+//       fetchFailed.value = true;
+//       setTimeout(() => (cacheV1.value.predictions = p), 2000);
+//     }, 2000);
+//   }
+// });
 
 const relevant: ComputedRef<{ prev?: Tide; next?: Tide }> = computed(() => {
   if (!cacheV1.value.predictions) {
@@ -79,23 +92,45 @@ const times = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col w-screen h-dvh justify-center items-center" v-if="relevant && whatsHappening && times">
-    <h1 class="font-bold text-6xl">
-      {{ time }}<span class="text-2xl w-0 inline">{{ amPm }}</span>
-    </h1>
-    <h2 class="text-lg mb-12">{{ date }}</h2>
-    <h2 class="text-2xl">
-      Tide is <span class="font-bold">{{ whatsHappening }}</span>
-    </h2>
-    <div class="flex flex-col w-80">
-      <div class="w-80 bg-gray-300 h-2 my-2">
-        <div class="bg-black h-2" :style="{ width: times.percent + '%' }" />
+  <Transition appear mode="out-in">
+    <div class="flex flex-col w-screen h-dvh justify-center items-center" v-if="relevant && whatsHappening && times">
+      <h1 class="font-bold text-6xl -mt-12 lg:-mt-24">
+        {{ time }}<span class="text-2xl w-0 inline">{{ amPm }}</span>
+      </h1>
+      <h2 class="text-lg mb-12">{{ date }}</h2>
+      <h2 class="text-2xl">
+        Tide is <span class="font-bold">{{ whatsHappening }}</span>
+      </h2>
+      <div class="flex flex-col w-80">
+        <div class="w-80 bg-gray-300 h-2 my-2">
+          <div class="bg-black h-2" :style="{ width: times.percent + '%' }" />
+        </div>
+        <div class="flex justify-between">
+          <span class="text-sm">{{ times.start }}</span>
+          <span class="text-sm">{{ times.end }}</span>
+        </div>
       </div>
-      <div class="flex justify-between">
-        <span class="text-sm">{{ times.start }}</span>
-        <span class="text-sm">{{ times.end }}</span>
+      <Waves :percent="times.percentIn" />
+    </div>
+    <div class="flex flex-col w-screen h-dvh justify-center items-center" v-else>
+      <div class="flex flex-col h-40 items-center">
+        <h1 class="mb-10" :class="{ 'opacity-50': fetchFailed }">
+          Loading data from <a class="font-bold underline" href="https://noaa.gov">https://noaa.gov</a> ...
+        </h1>
+        <h1 class="rounded-full bg-rose-100 border-2 border-black px-3 py-2" v-if="fetchFailed">It failed 😦</h1>
       </div>
     </div>
-    <Wave :percent="times.percentIn" />
-  </div>
+  </Transition>
 </template>
+
+<style>
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 1s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
+}
+</style>
