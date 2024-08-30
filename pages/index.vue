@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { cacheV1 } from "@/service/storage";
-import { useDateFormat, useNow } from "@vueuse/core";
+import { useIntervalFn } from "@vueuse/core";
 import dayjs, { Dayjs } from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import utc from "dayjs/plugin/utc";
@@ -10,10 +10,11 @@ import { getHiLoPredictions } from "~/service/noaa";
 dayjs.extend(relativeTime);
 dayjs.extend(utc);
 
-const now = useNow({ interval: 1000 });
-const date = useDateFormat(now, "MMMM D, YYYY");
-const time = useDateFormat(now, "h:mm");
-const amPm = useDateFormat(now, "A");
+const now = ref(dayjs());
+useIntervalFn(() => (now.value = dayjs()), 1000);
+const date = computed(() => now.value.format("MMMM D, YYYY"));
+const time = computed(() => now.value.format("h:mm"));
+const amPm = computed(() => now.value.format("A"));
 
 type Tide = {
   time: Dayjs;
@@ -54,7 +55,7 @@ const relevant: ComputedRef<{ prev?: Tide; next?: Tide }> = computed(() => {
   }
   const p = cacheV1.value.predictions.predictions;
   for (const idx in p) {
-    if (dayjs.utc(p[idx]["t"]) > dayjs()) {
+    if (dayjs.utc(p[idx]["t"]) > now.value) {
       const prev = p[idx - 1];
       const next = p[idx];
       return {
@@ -78,13 +79,12 @@ const times = computed(() => {
   if (!prev || !next) {
     return {};
   }
-  const now = dayjs();
   const between = next.time.diff(prev.time);
-  const sincePrev = now.diff(prev.time);
+  const sincePrev = now.value.diff(prev.time);
   const percent = Math.round((sincePrev / between) * 10000.0 + Number.EPSILON) / 100;
   return {
-    start: now.to(prev.time),
-    end: now.to(next.time),
+    start: now.value.to(prev.time),
+    end: now.value.to(next.time),
     percent,
     percentIn: prev["type"] === "L" ? percent : 100 - percent,
   };
