@@ -54,18 +54,18 @@ const relevant: ComputedRef<{ prev?: Tide; next?: Tide }> = computed(() => {
 });
 
 const whatsHappening = computed(() => {
-  const { prev, next } = relevant.value;
-  if (!prev || !next) {
+  if (!relevant.value) {
     return "";
   }
+  const { prev, next } = relevant.value;
   return next["type"] === "H" ? "coming in" : "going out";
 });
 
 const times = computed(() => {
-  const { prev, next } = relevant.value;
-  if (!prev || !next) {
+  if (!relevant.value) {
     return {};
   }
+  const { prev, next } = relevant.value;
   const now = dayjs();
   const between = next.time.diff(prev.time);
   const sincePrev = now.diff(prev.time);
