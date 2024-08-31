@@ -3,23 +3,30 @@ import { cacheV1 } from "@/service/storage";
 import { useIntervalFn } from "@vueuse/core";
 import dayjs, { Dayjs } from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { computed, onBeforeMount } from "vue";
-import { getHiLoPredictions } from "~/service/noaa";
+import { getHiLoPredictions, type HiLoPrediction } from "~/service/noaa";
 
 dayjs.extend(relativeTime);
 dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const now = ref(dayjs());
-useIntervalFn(() => (now.value = dayjs()), 1000);
+useIntervalFn(() => (now.value = dayjs().tz("America/Los_Angeles")), 1000);
 const date = computed(() => now.value.format("MMMM D, YYYY"));
 const time = computed(() => now.value.format("h:mm"));
-const amPm = computed(() => now.value.format("A"));
+const amPm = computed(() => now.value.format("a"));
 
 type Tide = {
   time: Dayjs;
+  value: number;
   type: "H" | "L";
 };
+
+function mapToTide(v: HiLoPrediction): Tide {
+  return { time: dayjs.utc(v["t"]), type: v["type"], value: parseFloat(v["v"]) };
+}
 
 const fetchFailed = ref(false);
 onBeforeMount(async () => {
@@ -49,35 +56,26 @@ onBeforeMount(async () => {
 //   }
 // });
 
-const relevant: ComputedRef<{ prev?: Tide; next?: Tide }> = computed(() => {
+const relevant: ComputedRef<{ prev?: Tide; next?: Tide; nextFew?: Tide[] }> = computed(() => {
   if (!cacheV1.value.predictions) {
     return {};
   }
   const p = cacheV1.value.predictions.predictions;
-  for (const idx in p) {
-    if (dayjs.utc(p[idx]["t"]) > now.value) {
-      const prev = p[idx - 1];
-      const next = p[idx];
-      return {
-        prev: { time: dayjs.utc(prev["t"]), type: prev["type"] },
-        next: { time: dayjs.utc(next["t"]), type: next["type"] },
-      };
-    }
+  const cur = p.findIndex((p) => dayjs.utc(p["t"]) > now.value);
+  if (cur < 0) {
+    throw "Unable to determine what tides are nearest to curren time";
   }
-  throw "Unable to determine what tides are nearest";
+  return {
+    prev: mapToTide(p[cur - 1]),
+    next: mapToTide(p[cur]),
+    nextFew: [p[cur], p[cur + 1], p[cur + 2]].map(mapToTide),
+  };
 });
 
-const whatsHappening = computed(() => {
-  if (!relevant.value.next) {
-    return "";
-  }
-  return relevant.value.next["type"] === "H" ? "coming in" : "going out";
-});
-
-const times = computed(() => {
+const currentCycle = computed(() => {
   const { prev, next } = relevant.value;
   if (!prev || !next) {
-    return {};
+    return;
   }
   const between = next.time.diff(prev.time);
   const sincePrev = now.value.diff(prev.time);
@@ -87,30 +85,43 @@ const times = computed(() => {
     end: now.value.to(next.time),
     percent,
     percentIn: prev["type"] === "L" ? percent : 100 - percent,
+    description: next["type"] === "H" ? "coming in" : "going out",
   };
 });
 </script>
 
 <template>
   <Transition appear mode="out-in">
-    <div class="flex flex-col w-screen h-dvh justify-center items-center" v-if="relevant && whatsHappening && times">
+    <div class="flex flex-col w-screen h-dvh justify-center items-center" v-if="relevant && currentCycle">
       <h1 class="font-bold text-6xl -mt-12 lg:-mt-24">
         {{ time }}<span class="text-2xl w-0 inline">{{ amPm }}</span>
       </h1>
       <h2 class="text-lg mb-12">{{ date }}</h2>
       <h2 class="text-2xl">
-        Tide is <span class="font-bold">{{ whatsHappening }}</span>
+        Tide is <span class="font-bold">{{ currentCycle.description }}</span>
       </h2>
       <div class="flex flex-col w-80">
         <div class="w-80 bg-gray-300 h-2 my-2">
-          <div class="bg-black h-2" :style="{ width: times.percent + '%' }" />
+          <div class="bg-black h-2" :style="{ width: currentCycle.percent + '%' }" />
         </div>
         <div class="flex justify-between">
-          <span class="text-sm">{{ times.start }}</span>
-          <span class="text-sm">{{ times.end }}</span>
+          <span class="text-sm">{{ currentCycle.start }}</span>
+          <span class="text-sm">{{ currentCycle.end }}</span>
+        </div>
+        <div class="flex justify-between mt-12">
+          <div class="flex px-3" v-for="t in relevant.nextFew">
+            <div class="text-3xl">
+              <span v-if="t.type === 'H'">↑</span>
+              <span v-else>↓</span>
+            </div>
+            <div class="flex flex-col justify-center items-center text-sm">
+              <span>{{ t.time.tz("America/Los_Angeles").format("h:mm a") }}</span>
+              <span>{{ t.value.toFixed(2) + " ft" }}</span>
+            </div>
+          </div>
         </div>
       </div>
-      <Waves :percent="times.percentIn" />
+      <Waves :percent="currentCycle.percentIn" />
     </div>
     <div class="flex flex-col w-screen h-dvh justify-center items-center" v-else>
       <div class="flex flex-col h-40 items-center">
