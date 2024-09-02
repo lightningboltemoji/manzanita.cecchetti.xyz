@@ -79,7 +79,7 @@ const currentCycle = computed(() => {
   }
   const between = next.time.diff(prev.time);
   const sincePrev = now.value.diff(prev.time);
-  const percent = Math.round((sincePrev / between) * 10000.0 + Number.EPSILON) / 100;
+  const percent = Math.round((sincePrev / between) * 10000.0) / 100;
   return {
     start: now.value.to(prev.time),
     end: now.value.to(next.time),
