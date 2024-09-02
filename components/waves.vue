@@ -13,7 +13,7 @@ const clampedPercent = computed(() => Math.round(props.percent * 92 + Number.EPS
       <div class="basis-1/2 bg-[#b4e1fd]" />
       <waves class="flex-grow basis-0 bg-gradient-to-b from-[#b4e1fd] from-10% to-[#ece8da]" />
     </div>
-    <div class="flex-grow basis-0 bg-[#ece8da]" />
+    <div class="flex-grow basis-0 bg-[#ece8da] -mt-1" />
   </div>
   <div class="fixed -bottom-[50vh] left-0 w-screen h-screen bg-[#ece8da] -z-20" />
 </template>
