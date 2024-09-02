@@ -4,7 +4,7 @@ import { computed } from "vue";
 
 const props = defineProps<{ percent: number }>();
 
-const clampedPercent = computed(() => Math.round(props.percent * 90 + Number.EPSILON) / 100 + 10);
+const clampedPercent = computed(() => Math.round(props.percent * 92 + Number.EPSILON) / 100 + 8);
 </script>
 
 <template>
