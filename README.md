@@ -13,9 +13,9 @@ Shows tide information for Manzanita, OR
 <br/>
 <div align="center"><sup><i>Demo of visualization at 0%, 50%, 100%</i></sup></div>
 <div align="center" class="flex">
-  <img width="200" src="https://github.com/user-attachments/assets/dbae24d4-0dee-4e4b-9ac6-0c9d82b22d1f"/>
-  <img width="200" src="https://github.com/user-attachments/assets/283be821-a2d8-4bc5-8e0f-53b625ad8b1e"/>
-  <img width="200" src="https://github.com/user-attachments/assets/b1e18eff-a7e0-490d-95a7-a6677bacde48"/>
+  <img width="200" src="https://github.com/user-attachments/assets/1a896382-ca6d-4877-8d88-fffcaded09cb"/>
+  <img width="200" src="https://github.com/user-attachments/assets/5d3bbc86-769b-44df-bd93-6fcd0817595d"/>
+  <img width="200" src="https://github.com/user-attachments/assets/dd8044dc-c66b-44a5-a142-6f1a64b8140b"/>
 </div>
 <br/>
 
