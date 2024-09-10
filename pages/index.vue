@@ -101,8 +101,8 @@ const currentCycle = computed(() => {
         Tide is <span class="font-bold">{{ currentCycle.description }}</span>
       </h2>
       <div class="flex flex-col w-80">
-        <div class="w-80 bg-gray-300 h-2 my-2">
-          <div class="bg-black h-2" :style="{ width: currentCycle.percent + '%' }" />
+        <div class="w-80 bg-[#A8938A] border-black box-content border h-3 my-2 rounded-full">
+          <div class="bg-black h-3 rounded-l-full" :style="{ width: currentCycle.percent + '%' }" />
         </div>
         <div class="flex justify-between">
           <span class="text-sm">{{ currentCycle.start }}</span>
