@@ -2,8 +2,8 @@
 export default defineNuxtConfig({
   compatibilityDate: "2024-04-03",
   devServer: { host: "0.0.0.0" },
-  devtools: { enabled: true },
-  modules: ["@nuxtjs/tailwindcss", "nuxt-svgo"],
+  devtools: { enabled: false },
+  modules: ["@nuxtjs/tailwindcss", "nuxt-svgo", "@nuxt/fonts"],
   ssr: false,
   svgo: {
     defaultImport: "component",
