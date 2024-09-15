@@ -108,8 +108,8 @@ const currentCycle = computed(() => {
           <span class="text-sm">{{ currentCycle.start }}</span>
           <span class="text-sm">{{ currentCycle.end }}</span>
         </div>
-        <div class="flex justify-between mt-12">
-          <div class="flex px-3" v-for="t in relevant.nextFew">
+        <div class="flex justify-between mt-12 [&>*:not(:first-child)]:pl-3">
+          <div class="flex" v-for="t in relevant.nextFew">
             <div class="text-3xl">
               <span v-if="t.type === 'H'">↑</span>
               <span v-else>↓</span>
