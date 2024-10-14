@@ -17,6 +17,7 @@ useIntervalFn(() => (now.value = dayjs().tz("America/Los_Angeles")), 1000);
 const date = computed(() => now.value.format("MMMM D, YYYY"));
 const time = computed(() => now.value.format("h:mm"));
 const amPm = computed(() => now.value.format("a"));
+const dayOfWeek = computed(() => now.value.format("d"));
 
 type Tide = {
   time: Dayjs;
@@ -96,7 +97,16 @@ const currentCycle = computed(() => {
       <h1 class="font-bold text-6xl -mt-12 lg:-mt-24">
         {{ time }}<span class="text-2xl w-0 inline">{{ amPm }}</span>
       </h1>
-      <h2 class="text-lg mb-12">{{ date }}</h2>
+      <h2 class="text-lg">{{ date }}</h2>
+      <div class="text-sm flex mb-12">
+        <div
+          class="border-y border-black size-6 flex items-center justify-center [&:first-child]:w-8 [&:last-child]:w-8 [&:first-child]:border-l [&:last-child]:border-r [&:first-child]:rounded-l-full [&:last-child]:rounded-r-full"
+          v-for="(d, idx) in ['Su', 'M', 'T', 'W', 'Th', 'F', 'Sa']"
+          :class="{ 'font-bold': `${idx}` == dayOfWeek }"
+        >
+          {{ d }}
+        </div>
+      </div>
       <h2 class="text-2xl">
         Tide is <span class="font-bold">{{ currentCycle.description }}</span>
       </h2>
