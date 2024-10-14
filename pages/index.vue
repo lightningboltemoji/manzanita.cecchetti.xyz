@@ -103,7 +103,7 @@ const currentCycle = computed(() => {
         <div
           class="border-y border-black size-6 flex items-center justify-center [&:first-child]:w-8 [&:last-child]:w-8 [&:first-child]:border-l [&:last-child]:border-r [&:first-child]:rounded-l-full [&:last-child]:rounded-r-full"
           v-for="(d, idx) in ['Su', 'M', 'T', 'W', 'Th', 'F', 'Sa']"
-          :class="{ 'font-bold': `${idx}` == dayOfWeek }"
+          :class="{ 'font-extrabold': `${idx}` == dayOfWeek }"
         >
           {{ d }}
         </div>
