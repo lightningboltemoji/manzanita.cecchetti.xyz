@@ -64,7 +64,8 @@ const relevant: ComputedRef<{ prev?: Tide; next?: Tide; nextFew?: Tide[] }> = co
   const p = cacheV1.value.predictions.predictions;
   const cur = p.findIndex((p) => dayjs.utc(p["t"]) > now.value);
   if (cur < 0) {
-    throw "Unable to determine what tides are nearest to curren time";
+    console.log("Unable to determine nearest tide; waiting for fetch");
+    return {};
   }
   return {
     prev: mapToTide(p[cur - 1]),
