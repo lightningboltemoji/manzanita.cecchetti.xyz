@@ -1,4 +1,3 @@
-# Based on https://github.com/actions/starter-workflows/blob/main/pages/nuxtjs.yml
 name: Deploy Nuxt.js site to CloudFlare Pages
 on:
   push:
@@ -30,10 +29,8 @@ jobs:
       - name: Build with Nuxt.js
         run: bun run generate
       - name: Deploy to CloudFlare Pages
-        uses: cloudflare/pages-action@1
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: manzanita-cecchetti-xyz
-          directory: .output/public
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: pages deploy .output/public --project-name=manzanita-cecchetti-xyz
